@@ -24,8 +24,5 @@
     "mongodb": "^4.5.0",
     "mongoose": "^6.3.0",
     "util": "^0.12.4"
-  },
-  "devDependencies": {
-    "artillery": "^2.0.0-14"
   }
 }

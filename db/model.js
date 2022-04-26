@@ -1,8 +1,8 @@
 const { MongoClient } = require("mongodb");
-const util = require('util')
+const util = require('util');
 
 const uri = "mongodb://18.117.159.187:27017";
-const client = new MongoClient(uri)
+const client = new MongoClient(uri);
 client.connect();
 const db = client.db("QA");
 
@@ -13,15 +13,15 @@ const read = async function (ID, type) {
   try {
     if (type === 'answer') {
       const answers = db.collection("answers_final");
-      const results = await answers.find({ "question_id": ID }).toArray()
-      return results
+      const results = await answers.find({ "question_id": ID }).toArray();
+      return results;
     } else {
       const questions = db.collection("questions_final");
-      const results = await questions.find({ "product_id": ID }).toArray()
-      return results
+      const results = await questions.find({ "product_id": ID }).toArray();
+      return results;
     }
   } catch (ex) {
-    console.error(`Something bad happened ${ex}`)
+    console.error(`Something bad happened ${ex}`);
   }
   // finally {
   //   client.close();
@@ -37,8 +37,7 @@ const create = async function (ID, type, data) {
   try {
     if (type === 'answer') {
       const answers = db.collection("answers_final");
-      // const answers = db.collection("answers_final");
-      const answerResults = await answers.find({}, { answer_id: 1, _id: 0 }).sort({ answer_id: -1 }).limit(1).toArray()
+      const answerResults = await answers.find({}, { answer_id: 1, _id: 0 }).sort({ answer_id: -1 }).limit(1).toArray();
       const answerToInsertIntoAnswers = {
         answer_id: answerResults[0].answer_id + 1,
         question_id: ID,
@@ -57,16 +56,16 @@ const create = async function (ID, type, data) {
       delete answerToInsertIntoQuestions.answer_id;
 
       // changing answers collection
-      const insertAnswerResults = await answers.insertOne(answerToInsertIntoAnswers)
+      const insertAnswerResults = await answers.insertOne(answerToInsertIntoAnswers);
 
       // changing questions collection
       const questions = db.collection("questions_final");
-      const questionResults = await questions.find({ "question_id": ID }).toArray()
+      const questionResults = await questions.find({ "question_id": ID }).toArray();
       const newAnswersForQuestion = { ...questionResults[0].answers, [answerToInsertIntoQuestions.id]: answerToInsertIntoQuestions }
-      await questions.updateOne({ "question_id": ID }, { $set: { "answers": newAnswersForQuestion } })
+      await questions.updateOne({ "question_id": ID }, { $set: { "answers": newAnswersForQuestion } });
     } else {
       const questions = db.collection("questions_final");
-      const answerResults = await questions.find({}, { question_id: 1, _id: 0 }).sort({ question_id: -1 }).limit(1).toArray()
+      const answerResults = await questions.find({}, { question_id: 1, _id: 0 }).sort({ question_id: -1 }).limit(1).toArray();
       const questionToInsertIntoQuestions = {
         product_id: ID,
         asker_name: data.name,
@@ -79,10 +78,10 @@ const create = async function (ID, type, data) {
         answers: {}
       }
       // console.log(util.inspect(questions, { depth: null }))
-      questions.insertOne(questionToInsertIntoQuestions)
+      questions.insertOne(questionToInsertIntoQuestions);
     }
   } catch (ex) {
-    console.log(`An error occured ${ex}`)
+    console.log(`An error occured ${ex}`);
 
 
   }
