@@ -1,13 +1,10 @@
 const { MongoClient } = require("mongodb");
 const util = require('util')
 
-const uri = "mongodb://localhost:27017";
+const uri = "mongodb://18.117.159.187:27017";
 const client = new MongoClient(uri)
 client.connect();
 const db = client.db("QA");
-// console.log(`Connected to DB ${db.databaseName}`)
-
-// console.log(test_answers.find())
 
 ////////////////////////////////////////////////////////////////
 // /////////gets data from the database ////////////// //
@@ -15,14 +12,12 @@ const db = client.db("QA");
 const read = async function (ID, type) {
   try {
     if (type === 'answer') {
-      const answers = db.collection("answers_with_photos_final");
+      const answers = db.collection("answers_final");
       const results = await answers.find({ "question_id": ID }).toArray()
-      console.log(util.inspect(results, { depth: null }))
       return results
     } else {
-      const questions = db.collection("test_questions_with_final");
+      const questions = db.collection("questions_final");
       const results = await questions.find({ "product_id": ID }).toArray()
-      // console.log(util.inspect(results, { depth: null }))
       return results
     }
   } catch (ex) {
@@ -39,13 +34,10 @@ const read = async function (ID, type) {
 //////////////// Adds a question or an Answer///////////////////
 ////////////////////////////////////////////////////////////////
 const create = async function (ID, type, data) {
-  // const client = new MongoClient(uri)
   try {
-    // await client.connect()
-    // const db = client.db("QA");
     if (type === 'answer') {
-      const answers = db.collection("answers_with_photos_final");
-      // const answers = db.collection("answers_with_photos_final");
+      const answers = db.collection("answers_final");
+      // const answers = db.collection("answers_final");
       const answerResults = await answers.find({}, { answer_id: 1, _id: 0 }).sort({ answer_id: -1 }).limit(1).toArray()
       const answerToInsertIntoAnswers = {
         answer_id: answerResults[0].answer_id + 1,
@@ -55,7 +47,6 @@ const create = async function (ID, type, data) {
         answerer_email: data.email,
         reported: "false",
         date: new Date().toISOString(),
-        // date: new Date().getTime(),
         helpfulness: 0,
         photos: data.photos
       }
@@ -69,12 +60,12 @@ const create = async function (ID, type, data) {
       const insertAnswerResults = await answers.insertOne(answerToInsertIntoAnswers)
 
       // changing questions collection
-      const questions = db.collection("test_questions_with_final");
+      const questions = db.collection("questions_final");
       const questionResults = await questions.find({ "question_id": ID }).toArray()
       const newAnswersForQuestion = { ...questionResults[0].answers, [answerToInsertIntoQuestions.id]: answerToInsertIntoQuestions }
       await questions.updateOne({ "question_id": ID }, { $set: { "answers": newAnswersForQuestion } })
     } else {
-      const questions = db.collection("test_questions_with_final");
+      const questions = db.collection("questions_final");
       const answerResults = await questions.find({}, { question_id: 1, _id: 0 }).sort({ question_id: -1 }).limit(1).toArray()
       const questionToInsertIntoQuestions = {
         product_id: ID,
@@ -83,14 +74,12 @@ const create = async function (ID, type, data) {
         reported: "false",
         question_body: data.body,
         question_date: new Date().toISOString(),
-        // question_date: new Date().getTime(),
         question_helpfulness: 0,
         question_id: answerResults[0].question_id + 1,
         answers: {}
       }
       // console.log(util.inspect(questions, { depth: null }))
       questions.insertOne(questionToInsertIntoQuestions)
-
     }
   } catch (ex) {
     console.log(`An error occured ${ex}`)
@@ -106,33 +95,33 @@ const create = async function (ID, type, data) {
 ////////////////////////////////////////////////////////////////
 ///////////////// Report Question or Answer/////////////////////
 ////////////////////////////////////////////////////////////////
-const report = async function (ID, type) {
-  // const client = new MongoClient(uri)
-  try {
-    // await client.connect()
-    // const db = client.db("QA");
-    if (type === 'answer') {
-      const answers = db.collection("test_answers_with_photos2");
-      // const answers = db.collection("answers_with_photos_final");
-      const answerResults = await answers.updateOne({ "answer_id": ID }, { $set: { "reported": 'true' } })
-      const answer = await answers.find({ "answer_id": ID }).toArray();
-      const questions = db.collection("test_questions2");
-      const questionToChange = await questions.find({ "question_id": answer[0].question_id }).toArray()
-      const newAnswers = { ...questionToChange[0].answers, [ID]: { ...questionToChange[0].answers[ID], reported: 'true' } };
-      await questions.updateOne({ "question_id": answer[0].question_id }, { $set: { "answers": newAnswers } })
-    } else {
-      const questions = db.collection("test_questions2");
-      await questions.updateOne({ "question_id": ID }, { $set: { "reported": "true" } })
-    }
-  } catch (ex) {
-    console.log(`An error occured ${ex}`)
+// const report = async function (ID, type) {
+//   // const client = new MongoClient(uri)
+//   try {
+//     // await client.connect()
+//     // const db = client.db("QA");
+//     if (type === 'answer') {
+//       const answers = db.collection("test_answers_with_photos2");
+//       // const answers = db.collection("answers_final");
+//       const answerResults = await answers.updateOne({ "answer_id": ID }, { $set: { "reported": 'true' } })
+//       const answer = await answers.find({ "answer_id": ID }).toArray();
+//       const questions = db.collection("test_questions2");
+//       const questionToChange = await questions.find({ "question_id": answer[0].question_id }).toArray()
+//       const newAnswers = { ...questionToChange[0].answers, [ID]: { ...questionToChange[0].answers[ID], reported: 'true' } };
+//       await questions.updateOne({ "question_id": answer[0].question_id }, { $set: { "answers": newAnswers } })
+//     } else {
+//       const questions = db.collection("test_questions2");
+//       await questions.updateOne({ "question_id": ID }, { $set: { "reported": "true" } })
+//     }
+//   } catch (ex) {
+//     console.log(`An error occured ${ex}`)
 
 
-  }
-  //  finally {
-  //   client.close()
-  // }
-}
+//   }
+//   //  finally {
+//   //   client.close()
+//   // }
+// }
 
 // report(1, 'question')
 
@@ -141,74 +130,45 @@ const report = async function (ID, type) {
 ////////////////////////////////////////////////////////////////
 ///////////////// Helpful Question or Answer/////////////////////
 ////////////////////////////////////////////////////////////////
-const helpful = async function (ID, type) {
-  // const client = new MongoClient(uri)
-  try {
-    // await client.connect()
-    // const db = client.db("QA");
-    if (type === 'answer') {
-
-      // /////increments helpfulness for answers collection
-      const answers = db.collection("test_answers_with_photos2");
-      // const answers = db.collection("answers_with_photos_final");
-      const answerToIncrease = await answers.find({ "answer_id": ID }).toArray();
-      const newHelpfulnessScore = answerToIncrease[0].helpfulness + 1;
-      await answers.updateOne({ "answer_id": ID }, { $set: { "helpfulness": newHelpfulnessScore } })
-
-      // /////increments helpfulness for questions collection
-      const questions = db.collection("test_questions2");
-      const questionToChange = await questions.find({ "question_id": answerToIncrease[0].question_id }).toArray()
-      const answersToChange = questionToChange[0].answers
-      const changedHelpfulness = answersToChange[ID]
-      const newAnswers = { ...answersToChange, [ID]: { ...answersToChange[ID], helpfulness: newHelpfulnessScore } };
-      await questions.updateOne({ "question_id": answerToIncrease[0].question_id }, { $set: { "answers": newAnswers } })
-    } else {
-      const questions = db.collection("test_questions2");
-      const questionToIncrease = await questions.find({ "question_id": ID }).toArray();
-      const newHelpfulnessScore = questionToIncrease[0].helpfulness + 1;
-      console.log(newHelpfulnessScore)
-      await questions.updateOne({ "question_id": ID }, { $set: { "question_helpfulness": newHelpfulnessScore } })
-    }
-  } catch (ex) {
-    console.log(`An error occured ${ex}`)
-
-
-  }
-  //  finally {
-  //   client.close()
-  // }
-}
-
-helpful(3, 'question')
-
-
-
-
-module.exports = { helpful, report, read, create }
-
-
-
-
-
-// const queryDatabaseUsing = async function (ID, type) {
-//   const client = new MongoClient(uri)
+// const helpful = async function (ID, type) {
+//   // const client = new MongoClient(uri)
 //   try {
-//     await client.connect();
-//     const db = client.db("QA");
-//     console.log(`Connected to DB ${db.databaseName}`)
-
+//     // await client.connect()
+//     // const db = client.db("QA");
 //     if (type === 'answer') {
-//       const answers = db.collection("answers_with_photos_final");
-//       const results = await answers.find({ "question_id": ID }).toArray()
-//       console.log(util.inspect(results, { depth: null }))
+
+//       // /////increments helpfulness for answers collection
+//       const answers = db.collection("test_answers_with_photos2");
+//       // const answers = db.collection("answers_final");
+//       const answerToIncrease = await answers.find({ "answer_id": ID }).toArray();
+//       const newHelpfulnessScore = answerToIncrease[0].helpfulness + 1;
+//       await answers.updateOne({ "answer_id": ID }, { $set: { "helpfulness": newHelpfulnessScore } })
+
+//       // /////increments helpfulness for questions collection
+//       const questions = db.collection("test_questions2");
+//       const questionToChange = await questions.find({ "question_id": answerToIncrease[0].question_id }).toArray()
+//       const answersToChange = questionToChange[0].answers
+//       const changedHelpfulness = answersToChange[ID]
+//       const newAnswers = { ...answersToChange, [ID]: { ...answersToChange[ID], helpfulness: newHelpfulnessScore } };
+//       await questions.updateOne({ "question_id": answerToIncrease[0].question_id }, { $set: { "answers": newAnswers } })
 //     } else {
-//       const questions = db.collection("test_questions_with_final");
-//       const results = await questions.find({ "product_id": ID }).toArray()
-//       console.log(util.inspect(results, { depth: null }))
+//       const questions = db.collection("test_questions2");
+//       const questionToIncrease = await questions.find({ "question_id": ID }).toArray();
+//       const newHelpfulnessScore = questionToIncrease[0].helpfulness + 1;
+//       console.log(newHelpfulnessScore)
+//       await questions.updateOne({ "question_id": ID }, { $set: { "question_helpfulness": newHelpfulnessScore } })
 //     }
 //   } catch (ex) {
-//     console.error(`Something bad happened ${ex}`)
-//   } finally {
-//     client.close();
+//     console.log(`An error occured ${ex}`)
+
+
 //   }
+//   //  finally {
+//   //   client.close()
+//   // }
 // }
+
+// helpful(3, 'question')
+
+
+module.exports = { read, create }
