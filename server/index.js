@@ -22,7 +22,7 @@ app.listen(PORT, () => {
 
 app.get(`/qa/*/answers`, async (req, res) => {
   let question_ID = req.originalUrl.split('/')[2];
-  let result = await read(Number(question_ID), 'answer')
+  let result = await read(Number(question_ID), 'answer');
   data = {
     question: question_ID,
     page: 0,
@@ -32,9 +32,9 @@ app.get(`/qa/*/answers`, async (req, res) => {
   res.send(data);
 })
 app.get(`/qa/*`, async (req, res) => {
-  const product_ID = req.originalUrl.split('/')
-  let result = await read(Number(product_ID[product_ID.length - 1]), 'question')
-  let data = { product_id: product_ID[product_ID.length - 1], results: result }
+  const product_ID = req.originalUrl.split('/');
+  let result = await read(Number(product_ID[product_ID.length - 1]), 'question');
+  let data = { product_id: product_ID[product_ID.length - 1], results: result };
   res.send(data);
 })
 
@@ -44,14 +44,14 @@ app.get(`/qa/*`, async (req, res) => {
 ////////////////////////////////////////////////////////////////
 app.post(`/qa/*/answers`, async (req, res) => {
   let question_ID = req.originalUrl.split('/')[2];
-  let result = await create(Number(question_ID), 'answer', req.body)
-  res.status(201).send(result)
+  let result = await create(Number(question_ID), 'answer', req.body);
+  res.status(201).send(result);
 })
 app.post(`/qa/*`, async (req, res) => {
-  const product_ID = req.originalUrl.split('/')
+  const product_ID = req.originalUrl.split('/');
   // product_ID = 1 ********for testing**********
-  let result = await create(Number(product_ID[product_ID.length - 1]), 'question', req.body)
-  res.status(201).send(result)
+  let result = await create(Number(product_ID[product_ID.length - 1]), 'question', req.body);
+  res.status(201).send(result);
   // let result = await create(product_ID, 'question', req.body) *******for testing*********
 })
 
