@@ -38,6 +38,10 @@ app.get(`/qa/*`, async (req, res) => {
   res.send(data);
 })
 
+app.get(`/loaderio-d150342dff852d4510d89250af8bff80.html`, (req, res) => {
+  res.send('loaderio-d150342dff852d4510d89250af8bff80')
+})
+
 
 ////////////////////////////////////////////////////////////////
 // /////////post a question or answer ////////////// //

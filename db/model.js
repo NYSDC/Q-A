@@ -4,7 +4,8 @@ require('dotenv').config()
 
 
 // const uri = "mongodb://18.117.159.187:27017";
-const uri = `mongodb://${process.env.USER_NAME}:${process.env.PSWD}@localhost:27017`;
+console.log('is this undefined?', process.env.USER_NAME)
+const uri = `mongodb://${process.env.USER_NAME}:${process.env.PSWD}@${process.env.HOST}:27017`;
 const client = new MongoClient(uri);
 client.connect();
 const db = client.db("QA");
